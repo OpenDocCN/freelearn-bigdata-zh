@@ -4,22 +4,22 @@
 > 
 > 燃琴为薪，铸银矢以射白羽；斑音成竹，裁短笛而驭青龙。
 
-* [在线阅读](https://bigdata.apachecn.org)
+* [在线阅读](https://bigdata.flygon.net)
 ## 下载
 
 ### Docker
 
 ```
-docker pull apachecn0/apachecn-bigdata-zh
-docker run -tid -p <port>:80 apachecn0/apachecn-bigdata-zh
+docker pull apachecn0/flygon-bigdata-zh
+docker run -tid -p <port>:80 apachecn0/flygon-bigdata-zh
 # 访问 http://localhost:{port} 查看文档
 ```
 
 ### NPM
 
 ```
-npm install -g apachecn-bigdata-zh
-apachecn-bigdata-zh <port>
+npm install -g flygon-bigdata-zh
+flygon-bigdata-zh <port>
 # 访问 http://localhost:{port} 查看文档
 ```
 
