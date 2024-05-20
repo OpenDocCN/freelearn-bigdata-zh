@@ -1,6 +1,6 @@
-# Storm 和 Cassandra 实时分析
+# Scala 和 Spark 大数据分析
 
-> 原文：[`zh.annas-archive.org/md5/7C24B06720C9BE51000AF16D45BAD7FF`](https://zh.annas-archive.org/md5/7C24B06720C9BE51000AF16D45BAD7FF)
+> 原文：[`zh.annas-archive.org/md5/39EECC62E023387EE8C22CA10D1A221A`](https://zh.annas-archive.org/md5/39EECC62E023387EE8C22CA10D1A221A)
 > 
 > 译者：[飞龙](https://github.com/wizardforcel)
 > 

@@ -13,7 +13,7 @@
 +   [大数据分析实践指南](docs/prac-bgdt-anlt/README.md)
 +   [PySpark 秘籍](docs/pyspark-cb/README.md)
 +   [Storm 和 Cassandra 实时分析](docs/rt-anlt-storm-csdr/README.md)
-+   [Storm 和 Cassandra 实时分析](docs/scala-spark-bgdt-anlt/README.md)
++   [Scala 和 Spark 大数据分析](docs/scala-spark-bgdt-anlt/README.md)
 +   [Spark 2.x 机器学习秘籍](docs/spark-2x-ml-cb/README.md)
 +   [Spark 秘籍](docs/spark-cb/README.md)
 +   [Spark 深度学习秘籍](docs/spark-dl-cb/README.md)
