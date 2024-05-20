@@ -1,0 +1,499 @@
+- en: Structured Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As you might already have understood from the previous chapters, Apache Spark
+    is currently in transition from RDD-based data processing to a more structured
+    one, backed by DataFrames and Datasets in order to let Catalyst and Tungsten kick
+    in for performance optimizations. This means that the community currently uses
+    a double-tracked approach. While the unstructured APIs are still supported--they
+    haven't even been marked as deprecated yet ,and it is questionable if they ever
+    will--a new set of structured APIs has been introduced for various components
+    with Apache Spark V 2.0, and this is also true for Spark Streaming. Structured
+    Steaming was marked stable in Apache Spark V 2.2\. Note that, as of Apache Spark
+    V 2.1 when ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: The concept of continuous applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Streaming apps tend to grow in complexity. Streaming computations don't run
+    in isolation; they interact with storage systems, batch applications, and machine
+    learning libraries. Therefore, the notion of continuous applications--in contrast
+    to batch processing--emerged, and basically means the composite of batch processing
+    and real-time stream processing with a clear focus of the streaming part being
+    the main driver of the application, and just accessing the data created or processed
+    by batch processes for further augmentation. Continuous applications never stop
+    and continuously produce data as new data arrives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: True unification - same code, same engine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So a continuous application could also be implemented on top of RDDs and DStreams
+    but would require the use of use two different APIs. In Apache Spark Structured
+    Streaming the APIs are unified. This unification is achieved by seeing a structured
+    stream as a relational table without boundaries where new data is continuously
+    appended to the bottom of it. In batch processing on DataFrames using the relational
+    API or SQL, intermediate DataFrames are created. As stream and batch computing
+    are unified on top of the Apache SparkSQL engine, when working with structured
+    streams, intermediate relational tables without boundaries are created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to note that one can mix (join) static and incremental ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Windowing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Open source and commercial streaming engines such as IBM Streams, Apache Storm,
+    or Apache Flink are using the concept of windows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Windows specify the granularity or number of subsequent records, which are taken
+    into account when executing aggregation functions on streams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How streaming engines use windowing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There exist five different properties in two dimensions, which is how windows
+    can be defined, where each window definition needs to use one property of each
+    dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first property is the mode in which subsequent windows of a continuous
+    stream of tuples can be created: sliding and tumbling.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second is that the number of tuples that fall into a window has to be specified:
+    either count-based, time-based or session-based.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s take a look at what they mean:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sliding windows**: A sliding window removes a tuple from it whenever a new
+    tuple is eligible to be included.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Tumbling windows**: A tumbling window removes all tuples from it whenever
+    there are enough tuples arriving to create a new window.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Count-based ...**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How Apache Spark improves windowing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache Spark structured streaming is significantly more flexible in the window-processing
+    model. As streams are virtually treated as continuously appended tables, and every
+    row in such a table has a timestamp, operations on windows can be specified in
+    the query itself and each query can define different windows. In addition, if
+    there is a timestamp present in static data, window operations can also be defined,
+    leading to a very flexible stream-processing model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, Apache Spark windowing is just a sort of special type of grouping
+    on the timestamp column. This makes it really easy to handle late arriving data
+    as well because Apache Spark can include it in the appropriate window and rerun
+    the computation on that window when a certain data item arrives late. This feature
+    is highly configurable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Event time versus processing time**: In time series analysis and especially
+    in stream computing, each record is assigned to a particular timestamp. One way
+    of creating such a timestamp is the arrival time at the stream-processing engine.
+    Often, this is not what you want. Usually, you want to assign an event time for
+    each record at that particular point in time when it was created, for example,
+    when a measurement on an IoT device took place. This allows coping with latency
+    between creating and processing of an event, for example, when an IoT sensor was
+    offline for a certain amount of time, or network congestion caused a delay of
+    data delivery.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The concept of late data is interesting when using event time instead of processing
+    time to assign a unique timestamp to each tuple. Event time is the timestamp when
+    a particular measurement took place, for example. Apache Spark structured streaming
+    can automatically cope with subsets of data arriving at a later point in time
+    transparently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Late data**: If a record arrives at any streaming engine, it is processed
+    immediately. Here, Apache Spark streaming doesn''t differ from other engines.
+    However, Apache Spark has the capability of determining the corresponding windows
+    a certain tuple belongs to at any time. If for whatever reason, a tuple arrives
+    late, all affected windows will be updated and all affected aggregate operations
+    based on these updated windows are rerun. This means that results are allowed
+    to change over time in case late data arrives. This is supported out of the box
+    without the programmer worrying about it. Finally, since Apache Spark V2.1, it
+    is possible to specify the amount of time that the system accepts late data using
+    the `withWatermark` method.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The watermark is basically the threshold, used to define how old a late arriving
+    data point is allowed to be in order to still be included in the respective window.
+    Again, consider the HTTP server log file working over a minute length window.
+    If, for whatever reason, a data tuple arrives which is more than 4 hours old it
+    might not make sense to include it in the windows if, for example, this application
+    is used to create a time-series forecast model on an hourly basis to provision
+    or de-provision additional HTTP servers to a cluster. A four-hour-old data point
+    just wouldn't make sense to process, even if it could change the decision, as
+    the decision has already been made.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Increased performance with good old friends
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As in Apache SparkSQL for batch processing and, as Apache Spark structured streaming
+    is part of Apache SparkSQL, the Planner (Catalyst) creates incremental execution
+    plans as well for mini-batches. This means that the whole streaming model is based
+    on batches. This is the reason why a unified API for streams and batch processing
+    could be achieved. The price we pay is that Apache Spark streaming sometimes has
+    drawbacks when it comes to very low latency requirements (sub-second, in the range
+    of tens of ms). As the name Structured Streaming and the usage of DataFrames and
+    Datasets implies, we are also benefiting from performance improvements due to
+    project Tungsten, which has been introduced in a previous ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: How transparent fault tolerance and exactly-once delivery guarantee is achieved
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache Spark structured streaming supports full crash fault tolerance and exactly-once
+    delivery guarantee without the user taking care of any specific error handling
+    routines. Isn't this amazing? So how is this achieved?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Full crash fault tolerance and exactly-once delivery guarantee are terms of
+    systems theory. Full crash fault tolerance means that you can basically pull the
+    power plug of the whole data center at any point in time, and no data is lost
+    or left in an inconsistent state. Exactly-once delivery guarantee means, even
+    if the same power plug is pulled, it is guaranteed that each tuple- end-to-end
+    from the data source to the data sink - is delivered - only, and exactly, once.
+    Not zero times and also not more than one time. Of course, those concepts must
+    also hold in case a single node fails or misbehaves (for example- starts throttling).
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, states between individual batches and offset ranges (position
+    in a source stream) are kept in-memory but are backed by a **Write Ahead Log**
+    (**WAL**) in a fault-tolerant filesystem such as HDFS. A WAL is basically a log
+    file reflecting the overall stream processing state in a pro-active fashion. This
+    means before data is transformed through an operator, it is first persistently
+    stored in the WAL in a way it can be recovered after a crash. So, in other words,
+    during the processing of an individual mini batch, the regions of the worker memory,
+    as well as the position offset of the streaming source, are persisted to disk.
+    In case the system fails and has to recover, it can re-request chunks of data
+    from the source. Of course, this is only possible if the source supports this
+    semantics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replayable sources can replay streams from a given offset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: End-to-end exactly-once delivery guarantee requires the streaming source to
+    support some sort of stream replay at a requested position. This is true for file
+    sources and Apache Kafka, for example, as well as the IBM Watson Internet of Things
+    platform, where the following example in this chapter will be based on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Idempotent sinks prevent data duplication
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Another key to end-to-end exactly-once delivery guarantee is idempotent sinks.
+    This basically means that sinks are aware of which particular write operation
+    has succeeded in the past. This means that such a smart sink can re-request data
+    in case of a failure and also drop data in case the same data has been sent multiple
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State versioning guarantees consistent results after reruns
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What about the state? Imagine that a machine learning algorithm maintains a
+    count variable on all the workers. If you replay the exact same data twice, you
+    will end up counting the data multiple times. Therefore, the query planner also
+    maintains a versioned key-value map within the workers, which are persisting their
+    state in turn to HDFS--which is by design fault tolerant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, in case of a failure, if data has to be replaced, the planner makes sure
+    that the correct version of the key-value map is used by the workers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example - connection to a MQTT message broker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So, let's start with a sample use case. Let's connect to an **Internet of Things**
+    (**IoT**) sensor data stream. As we haven't covered machine learning so far, we
+    don't analyze the data, we just showcase the concept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are using the IBM Watson IoT platform as a streaming source. At its core,
+    the Watson IoT platform is backed by an **MQTT** (**Message Queue Telemetry Transport**)
+    message broker. MQTT is a lightweight telemetry protocol invented by IBM in 1999
+    and became-- an **OASIS** (**Organization for the Advancement of Structured Information
+    Standards**, a global nonprofit consortium that works on the development, convergence,
+    and adoption of standards for security, Internet of Things, energy, content technologies,
+    emergency management, and other areas) standard in 2013--the de facto standard
+    for IoT data integration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Messaging between applications can be backed by a message queue which is a middleware
+    system supporting asynchronous point to point channels in various delivery modes
+    like **first-in-first-out** (**FIFO**), **last-in-first-out** (**LIFO**) or **Priority
+    Queue** (where each message can be re-ordered by certain criteria).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is already a very nice feature, but still, couples applications in a certain
+    way because, once a message is read, it is made unavailable to others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This way N to N communication is hard (but not impossible) to achieve. In a
+    publish/subscribe model applications are completely de-coupled. There doesn't
+    exist any queues anymore but the notion of topics is introduced. Data providers
+    publish messages on specific topics and data consumers subscribe to those topics.
+    This way N to N communication is very straightforward to achieve since it is reflected
+    by the underlying message delivery model. Such a middleware is called a Message
+    Broker in contrast to a Message Queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As cloud services tend to change constantly, and cloud, in general, is introduced
+    later in this book, the following tutorial explains how to set up the test data
+    generator in the cloud and connect to the remote MQTT message broker. In this
+    example, we will use the IBM Watson IoT Platform, which is an MQTT message broker
+    available in the cloud. Alternatively one can install an open source message broker
+    like MOSQUITTO which also provides a publicly available test installation on the
+    following URL: [http://test.mosquitto.org/](http://test.mosquitto.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to replicate the example, the following steps (1) and (2) are necessary
+    as described in the following tutorial: [https://www.ibm.com/developerworks/library/iot-cognitive-iot-app-machine-learning/index.html](https://www.ibm.com/developerworks/library/iot-cognitive-iot-app-machine-learning/index.html).
+    Please make sure to note down `http_host`, `org` , `apiKey`, and `apiToken` during
+    execution of the tutorial. Those are needed later in order to subscribe to data
+    using Apache Spark Structured Streaming.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the IBM Watson IoT platform uses the open MQTT standard, no special IBM component
+    is necessary to connect to the platform. Instead, we are using MQTT and Apache
+    Bahir as a connector between MQTT and Apache Spark structured streaming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of the Apache Bahir project is to provide a set of source and sink
+    connectors for various data processing engines including Apache Spark and Apache
+    Flink since they are lacking those connectors. In this case, we will use the Apache
+    Bahir MQTT data source for MQTT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to use Apache Bahir, we need to add two dependencies to our local
+    maven repository. A complete `pom.xml` file is provided in the download section
+    of this chapter. Let''s have a look at the dependency section of `pom.xml`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/3408ec51-5ead-4efd-902c-37efc6735a9f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We are basically getting the MQTT Apache structured streaming adapter of Apache
+    Bahir and a dependent package for low-level MQTT processing. A simple `mvn dependency:resolve`
+    command in the directory of the `pom.xml` file pulls the required dependencies
+    into our local maven repository, where they can be accessed by the Apache Spark
+    driver and transferred to the Apache Spark workers automatically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another way of resolving the dependencies is when using the following command
+    in order to start a spark-shell (spark-submit works the same way); the necessary
+    dependencies are automatically distributed to the workers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/929fb112-1ce2-45d8-a721-ebd6b7db7a15.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Now we need the MQTT credentials that we''ve obtained earlier. Let''s set the
+    values here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can start creating a stream connecting to an MQTT message broker. We
+    are telling Apache Spark to use the Apache Bahir MQTT streaming source:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We need to specify credentials such as `username`, `password`, and `clientId` in
+    order to pull data from the MQTT message broker; the link to the tutorial mentioned
+    earlier explains how to obtain these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As we are using a publish/subscribe messaging model, we have to provide the
+    topic that we are subscribing to--this topic is used by the test data generator
+    that you''ve deployed to the cloud before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once everything is set on the configuration side, we have to provide the endpoint
+    host and port in order to create the stream:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Interestingly, as can be seen in the following screenshot, this leads to the
+    creation of a DataFrame:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/7303999c-963f-42ee-935a-149985204527.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note that the schema is fixed to `[String, Timestamp]` and cannot be changed
+    during stream creation--this is a limitation of the Apache Bahir library. However,
+    using the rich DataFrame API, you can parse the value, a JSON string for example,
+    and create new columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As discussed before, this is one of the powerful features of Apache Spark structured
+    streaming, as the very same DataFrame (and Dataset) API now can be used to process
+    historic and real-time data. So let''s take a look at the contents of this stream
+    by writing it to the console:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As output mode, we choose `append` to enforce incremental display and avoid
+    having the complete contents of the historic stream being written to the console
+    again and again. As `format`, we specify `console` as we just want to debug what''s
+    happening on the stream:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/7a3c0353-00f4-43e3-92fa-1d3b9e656b7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Finally, the `start` method initiates query processing, as can be seen here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/af7770d2-b680-4aaf-b6c3-e7c683163054.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Controlling continuous applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Once a continuous application (even a simple one, not taking historic data
+    into account) is started and running, it has to be controlled somehow as the call
+    to the `start` method immediately starts processing, but also returns without
+    blocking. In case you want your program to block at this stage until the application
+    has finished, one can use the `awaitTermination` method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is particularly important when precompiling code and using the `spark-submit`
+    command. When using `spark-shell`, the application is not terminated anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More on stream life cycle management
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Streaming tends to be used in the creation of continuous applications. This
+    means that the process is running in the background and, in contrast to batch
+    processing, doesn''t have a clear stop time; therefore, DataFrames and Datasets
+    backed by a streaming source, support various methods for stream life cycle management,
+    which are explained as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start`: This starts the continuous application. This method doesn''t block.
+    If this is not what you want, use `awaitTermination`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`stop` : This terminates the continuous application.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`awaitTermination` : As mentioned earlier, starting a stream using the `start`
+    method immediately returns, which means that the call is not blocking. Sometimes
+    you want to wait until the stream is terminated, either by someone else calling
+    `stop` on it or by an error.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`exception`: In case a stream stopped because of an error, the cause can be
+    read using this method.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sourceStatus`: This is to obtain real-time meta information on the streaming
+    source.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`sinkStatus` : This is to obtain real-time meta information on the streaming
+    sink.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sinks in Apache Spark streaming are smart in the sense that they support fault
+    tolerance and end-to-end exactly-once delivery guarantee as mentioned before.
+    In addition, Apache Spark needs them to support different output methods. Currently,
+    the following three output methods, `append`, `update`, and `complete`, significantly
+    change the underlying semantics. The following paragraph contains more details
+    about the different output methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Different output modes on sinks: Sinks can be specified to handle output in
+    different ways. This is known as `outputMode`. The naive choice would use an incremental
+    approach as we are processing incremental data with streaming anyway. This mode
+    is referred to as `append`. However, there exist requirements where data already
+    processed by the sink has to be changed. One example is the late arrival problem
+    of missing data in a certain time window, which can lead to changing results once
+    the computation for that particular time window is recomputed. This mode is called
+    `complete`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since Version 2.1 of Apache Spark, the `update` mode was introduced that behaves
+    similarly to the `complete` mode but only changes rows that have been altered,
+    therefore saving processing resources and improving speed. Some types of modes
+    do not support all query types. As this is constantly changing, it is best to
+    refer to the latest documentation at [http://spark.apache.org/docs/latest/streaming-programming-guide.html.](http://spark.apache.org/docs/latest/streaming-programming-guide.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So why do we have two different streaming engines within the same data processing
+    framework? We hope that after reading this chapter, you''ll agree that the main
+    pain points of the classical DStream based engine have been addressed. Formerly,
+    event time-based processing was not possible and only the arrival time of data
+    was considered. Then, late data has simply been processed with the wrong timestamp
+    as only processing time could be used. Also, batch and stream processing required
+    using two different APIs: RDDs and DStreams. Although the API is similar, it is
+    not exactly the same; therefore, the rewriting of code when going back and forth
+    between the two paradigms was necessary. Finally, an end-to-end delivery guarantee
+    was hard to ...'
+  prefs: []
+  type: TYPE_NORMAL

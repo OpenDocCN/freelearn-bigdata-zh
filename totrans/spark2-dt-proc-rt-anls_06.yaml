@@ -1,0 +1,353 @@
+- en: Apache SystemML
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So far, we have only covered components that came along with the standard distribution
+    of Apache Spark (except HDFS, Kafka and Flume, of course). However, Apache Spark
+    can also serve as runtime for third-party components, making it as some sort of
+    operating system for big data applications. In this chapter, we want to introduce
+    Apache SystemML, an amazing piece of technology initially developed by the *IBM
+    Almaden Research Lab* in California. Apache SystemML went through many transformation
+    stages and has now become an Apache top level project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following topics to get a greater insight
+    into the subject:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using SystemML for your own machine learning applications on top of Apache Spark
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Learning ...
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why do we need just another library?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In order to answer this question, we have to know something about SystemML's
+    history, which began ten years ago in 2007 as a research project in the *IBM Almaden
+    Research Lab* in California. The project was driven by the intention to improve
+    the workflow of data scientists, especially those who want to improve and add
+    functionality to existing machine learning algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, **SystemML** is a declarative markup language that can transparently distribute
+    work on Apache Spark. It supports Scale-up using multithreading and SIMD instructions
+    on CPUs as well as GPUs and also Scale-out using a cluster, and of course, both
+    together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, there is a cost-based optimizer in place to generate low-level execution
+    plans taking statistics about the Dataset sizes into account. In other words,
+    **Apache SystemML** is for machine learning, what Catalyst and Tungsten are for
+    DataFrames.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why on Apache Spark?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache Spark solves a lot of common issues in data processing and machine learning,
+    so Apache SystemML can make use of these features. For example, Apache Spark supports
+    the unification of SQL, Graph, Stream, and machine learning data processing on
+    top of a common RDD structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, it is a general **DAG** (**directed acyclic graph**) execution
+    engine supporting lazy evaluation and distributed in-memory caching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The history of Apache SystemML
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache SystemML is already ten years old. Of course, it went through multiple
+    refactorings and is now a state-of-the-art, and one of the fastest, machine learning
+    libraries in the world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/99d7fcbd-805c-4eb7-8ce4-824feb427843.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As you can see in the preceding figure, a lot of research has been done for
+    Apache SystemML. It is two years older than Apache Spark and in 2017 it has been
+    turned into a top-level Apache project, leaving **incubator** status. Even during
+    the time SystemML was started, the researchers at *IBM Research Almaden* realized
+    that, very often, out-of-the-box machine learning algorithms perform very poorly
+    on large Datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, the data analysis pipeline, had to be tuned after a small-scale version
+    of it had been prototyped. The following figure illustrates this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/f320753c-315a-4185-884d-d5cf1092b0c4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This means that the data scientist will prototype his application in a programming
+    language of his choice, most likely Matlab, R or python and, finally, a systems
+    programmer will pick this up and re-implement this in a JVM language like Java
+    or Scala, which usually turns out to provide better performance and also linearly
+    scales on data parallel framework like Apache Spark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The scaled version of the prototype will return results on the whole Dataset
+    and the data scientist again is in charge of modifying the prototype and the whole
+    cycle begins again. Not only the IBM Almaden Research staff members have experienced
+    this, but even our team has seen it. So let's make the systems programmer redundant
+    (or at least require him only to take care of our Apache Spark jobs) using Apache
+    SystemML.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A cost-based optimizer for machine learning algorithms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let's start with an example to exemplify how Apache SystemML works internally.
+    Consider a recommender system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example - alternating least squares
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A recommender system tries to predict the potential items that a user might
+    be interested in, based on a history from other users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let''s consider a so-called item-user or product-customer matrix, as illustrated
+    here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/fec9348c-089f-4c7a-a554-afe5dc4c2ed1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is a so-called **sparse** matrix because only a couple of cells are populated
+    with non-zero values indicating a match between a customer *i* and a product *j*.
+    Either by just putting a **one** in the cell or any other numerical value, for
+    example, indicating the number of products bought or a rating for that particular
+    product *j* from customer *i*. Let's call this matrix *r[ui]*, where *u* stands
+    for user and *i* for item.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Those of you familiar with linear algebra might know that any matrix can be
+    factorized by two smaller matrices. This means that you have to find two matrices
+    *p[u]* and *q[i]* that, when multiplied with each other, reconstruct the original
+    matrix *r[ui]*; let's call the reconstruction *r[ui]'*. The goal is to find *p[u]*
+    and *q[i]* to reconstruct *r[ui]'* such that it doesn't differ too much from *r[ui]*.
+    This is done using a sum of squared errors objective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure illustrates this and the sparsity property of the matrix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/313de954-d123-4de2-9a17-946ba029838a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Once we've found good factors *p[u]* and *q[i]*, we can construct *r[ui]'* and,
+    finally, new non-zero cells will be present, which become the new predicted product
+    suggestions. In case you haven't understood all the details, don't worry, as we
+    don't need too much of this example to understand the rest of this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A common algorithm to find *p[u]* and *q[i]* is called **alternating least
+    squares** (**ALS**)--alternating because in each iteration the optimization objective
+    switches from *p[u]* to *q[i]* and vice versa. Don''t get bothered with it too
+    much, but this is how it actually works, and, in Apache Spark MLlib, this is just
+    a single line of Scala code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/09984e95-cf71-420f-a20e-a54a99248aad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So what''s wrong with this? Before we explain this, let''s take a look at how
+    ALS is implemented in a statistical programming language such as R:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/11ca287a-c585-495a-b154-b356f6576364.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Again, don't worry if you don't understand each line, but the purpose of this
+    figure is to show you that in R, this algorithm needs only 27 lines of code to
+    be expressed. If we now take a look at the ALS implementation in MLlib, we'll
+    see that it has more than 800 lines. You can find this implementation at [https://github.com/apache/spark/tree/master/mllib/src/main/scala/org/apache/spark/mllib/recommendation](https://github.com/apache/spark/tree/master/mllib/src/main/scala/org/apache/spark/mllib/recommendation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So why do we need more than 800 lines in Scala on Spark and only 27 in R? This
+    is because of performance optimizations. The ALS implementation in MLlib consists
+    of more than 50% of performance optimization code. So what if we could perform
+    the following?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get rid of all performance optimizations in our algorithm implementation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Port our R code 1:1 to some parallel framework
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In case of changes, just change our R implementation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is where Apache SystemML kicks in, it supports all this. Apache SystemML's
+    **DSL** (**domain specific language**) is a subset of R syntax, so you can just
+    take the previous example and run it 1:1 without any modification on top of Apache
+    SystemML. In addition, a cost-based performance optimizer generates a physical
+    execution plan on top of Apache Spark in order to minimize execution time based
+    on the size properties of your data. So let's find out how this works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ApacheSystemML architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So the key thing on Apache SystemML is the optimizer. This component turns
+    a high-level description of an algorithm in a domain-specific language into a
+    highly optimized physical execution on Apache Spark, as shown in the following
+    figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/0747c796-c870-468f-bf36-ba63cf7b6945.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Language parsing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let's open this black box a bit in order to understand what exactly is going
+    on in the Apache SystemML optimizer. The first thing that the engine does is a
+    compile step on the DSL. So first, syntax checking, then live variable analysis
+    in order to determine which intermediate results are still needed, and finally
+    a semantic check.
+  prefs: []
+  type: TYPE_NORMAL
+- en: High-level operators are generated
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Once the previous step is passed, the execution plan using so-called **high-level
+    operators** (**HOPs**) is generated. These are constructed from the **abstract
+    syntax tree** (**AST**) of the DSL. The following important optimization steps
+    are taking place during this phase:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Static rewrites**: The DSL offers a rich set of syntactical and semantic
+    features that makes an implementation easy to understand but may result in a non-optimal
+    execution. Apache SystemML detects these branches of the AST and statically rewrites
+    them to a better version, maintaining the semantic equivalency.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Dynamic rewrites**: Dynamic rewrites are very similar to static rewrites
+    but are driven by cost-based statistics considering the size of the Datasets ...'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How low-level operators are optimized on
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let''s have a look on, how low-level operators are selected and optimized on.
+    We''ll stick to the weighted divide matrix multiplication example--a HOP that
+    has been selected before the HOP optimizations process over an ordinary sequence
+    of matrix multiplications. So now the question arises, for example, if it makes
+    sense to use a parallel version of a LOP running parallel on the Apache Spark
+    workers, or whether a local execution is preferable. In this example, Apache SystemML
+    determines that all intermediate results fit into the main memory of the driver
+    node and chooses the local operator, **WDivMM**, over the parallel operator, **MapWDivMM**.
+    The following figure illustrates this process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/41cf44d5-92c7-4841-b372-0bd9d429d63f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Performance measurements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So is all this effort worth it? Let''s take a look at some performance comparisons
+    between a local R script, MLlib, and Apache SystemML:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/730107a4-fa1e-4a18-9661-09639c998ed2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The ALS algorithm has been run on different Datasets with 1.2, 12, and 120 GB
+    size using R, MLlib, and ApacheSystemML. We can clearly see that, even on the
+    smallest Dataset, R is not a feasible solution as it took more than 24 hours,
+    and we are not sure if it would have ever completed. On the 12 GB Dataset, we've
+    noticed that ApacheSystemML runs significantly faster than MLlib, and finally,
+    on the 120 GB Dataset, the ALS implementation of MLlib didn't finish in one day
+    and we gave ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apache SystemML in action
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So let''s take a look at a very simple example. Let''s create a script in Apache
+    SystemML DSL--an R-like syntax--in order to multiply two matrices:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we generate some test data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order to use Apache SystemML, we have to create an `MLContext` object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we have to convert our data to a format that Apache SystemML understands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we pass the data `X` and `Y` to the Apache SystemML runtime and also preregister
+    a variable called `Z` in order to obtain the result from the runtime:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we actually execute the script stored in `simpleScript` with the `executeScript`
+    method and obtain the result from the runtime:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now `Z` contains `DataFrame` with the result of the matrix multiplication. Done!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You've learned that there is room for additional machine learning frameworks
+    and libraries, on top of Apache Spark and that, a cost-based optimizer similar
+    to what we are already using in Catalyst can speed things up tremendously. In
+    addition, separation from performance optimizations code and code for the algorithm
+    facilitates further improvements on the algorithm side without having to care
+    about performance at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, these execution plans are highly adaptable to the size of the
+    data and also to the available hardware configuration based on main memory size
+    and potential accelerators such as GPUs. Apache SystemML dramatically improves
+    on the life cycle of machine learning applications, especially if machine learning
+    ...
+  prefs: []
+  type: TYPE_NORMAL

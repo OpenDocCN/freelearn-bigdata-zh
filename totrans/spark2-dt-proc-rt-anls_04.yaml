@@ -1,0 +1,645 @@
+- en: Apache Spark MLlib
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: MLlib is the original machine learning library that is provided with Apache
+    Spark, the in-memory cluster-based open source data processing system. This library
+    is still based on the RDD API. In this chapter, we will examine the functionality
+    provided with the MLlib library in terms of areas such as regression, classification,
+    and neural network processing. We will examine the theory behind each algorithm
+    before providing working examples that tackle real problems. The example code
+    and documentation on the web can be sparse and confusing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will take a step-by-step approach in describing how the following algorithms
+    can be used and what they are capable of doing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Classification with Naive Bayes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clustering with K-Means
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Image classification with **artificial neural networks**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Remember that, although Spark is used for the speed of its in-memory distributed
+    processing, it doesn't provide storage. You can use the Host (local) filesystem
+    to read and write your data, but if your data volumes are big enough to be described
+    as big data, then it makes sense to use a cloud-based distributed storage system
+    such as OpenStack Swift Object Storage, which can be found in many cloud environments
+    and can also be installed in private data centers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In case very high I/O is needed, HDFS would also be an option. More information
+    on HDFS can be found here: [http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html](http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The development environment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The Scala language will be used for the coding samples in this book. This is
+    because, as a scripting language, it produces less code than Java. It can also
+    be used from the Spark shell as well as compiled with Apache Spark applications.
+    We will be using the **sbt tool** to compile the Scala code, which we have installed
+    into Hortonworks HDP 2.6 Sandbox as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following URL provides instructions to install sbt on other operating systems
+    including Windows, Linux, and macOS: [http://www.scala-sbt.org/0.13/docs/Setup.html](http://www.scala-sbt.org/0.13/docs/Setup.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We used a generic Linux account called **Hadoop**. As the previous commands
+    show, we need to install `sbt` as the root account, which we have accessed via
+    `sudo su -l` (switch user). We then downloaded the `sbt.rpm` file to the `/tmp`
+    directory from the web-based server called `repo.scala-sbt.org` using `wget`.
+    Finally, we installed the `rpm` file using the `rpm` command with the options
+    `i` for install, `v` for verify, and `h` to print the hash marks while the package
+    is being installed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We developed all of the Scala code for Apache Spark in this chapter on the
+    Linux server, using the Linux Hadoop account. We placed each set of code within
+    a subdirectory under `/home/hadoop/spark`. For instance, the following `sbt` structure
+    diagram shows that the MLlib Naive Bayes code is stored in a subdirectory called
+    `nbayes` under the Spark directory. What the diagram also shows is that the Scala
+    code is developed within a subdirectory structure named `src/main/scala` under
+    the `nbayes` directory. The files called `bayes1.scala` and `convert.scala` contain
+    the Naive Bayes code that will be used in the next section:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/4e6ee246-91df-45b4-b62d-91322e97ea0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The `bayes.sbt` file is a configuration file used by the `sbt` tool, which describes
+    how to compile the Scala files within the Scala directory. (Note that if you were
+    developing in Java, you would use a path of the `nbayes/src/main/java` form .)
+    The contents of the `bayes.sbt` file are shown next. The `pwd` and `cat` Linux
+    commands remind you of the file location and also remind you to dump the file
+    contents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `name`, `version`, and `scalaVersion` options set the details of the project
+    and the version of Scala to be used. The `libraryDependencies` options define
+    where the Hadoop and Spark libraries can be located.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Scala `nbayes` project code can be compiled from the `nbayes` subdirectory
+    using this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `sbt compile` command is used to compile the code into classes. The classes
+    are then placed in the `nbayes/target/scala-2.10/classes` directory. The compiled
+    classes can be packaged in a JAR file with this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `sbt package` command will create a JAR file under the `nbayes/target/scala-2.10`
+    directory. As we can see in the example in the **sbt structure diagram**, the
+    JAR file named `naive-bayes_2.10-1.0.jar` has been created after a successful
+    compile and package. This JAR file, and the classes that it contains, can then
+    be used in a `spark-submit` command. This will be described later as the functionality
+    in the Apache Spark MLlib module is explored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classification with Naive Bayes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section will provide a working example of the Apache Spark MLlib Naive
+    Bayes algorithm. It will describe the theory behind the algorithm and will provide
+    a step-by-step example in Scala to show how the algorithm may be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Theory on Classification
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to use the Naive Bayes algorithm to classify a dataset, the data must
+    be linearly divisible; that is, the classes within the data must be linearly divisible
+    by class boundaries. The following figure visually explains this with three datasets
+    and two class boundaries shown via the dotted lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/5d57d6e1-50f8-4545-adac-23de9f528038.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Naive Bayes assumes that the features (or dimensions) within a dataset are
+    independent of one another; that is, they have no effect on each other. The following
+    example considers the classification of e-mails as spam. If you have 100 e-mails,
+    then perform the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s convert this example into conditional probabilities so that a Naive
+    Bayes classifier can pick it up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What is the probability that an e-mail that contains the word buy is spam?
+    Well, this would be written as *P (Spam|Buy)*. Naive Bayes says that it is described
+    by the equation in the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/3adfb0ba-fb3c-4349-9460-d2957e12edc5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So, using the previous percentage figures, we get the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P(Spam|Buy) = ( 0.8 * 0.6 ) / (( 0.8 * 0.6 ) + ( 0.1 * 0.4 ) ) = ( .48 ) /
+    ( .48 + .04 )*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*= .48 / .52 = .923*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that it is *92* percent more likely that an e-mail that contains
+    the word buy is spam. That was a look at the theory; now it's time to try a real-world
+    example using the Apache Spark MLlib Naive Bayes algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Naive Bayes in practice
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first step is to choose some data that will be used for classification.
+    We have chosen some data from the UK Government data website at [http://data.gov.uk/dataset/road-accidents-safety-data](http://data.gov.uk/dataset/road-accidents-safety-data).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset is called **Road Safety - Digital Breath Test Data 2013**, which
+    downloads a zipped text file called `DigitalBreathTestData2013.txt`. This file
+    contains around half a million rows. The data looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to classify the data, we have modified both the column ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clustering with K-Means
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This example will use the same test data from the previous example, but we will
+    attempt to find clusters in the data using the MLlib K-Means algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Theory on Clustering
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The K-Means algorithm iteratively attempts to determine clusters within the
+    test data by minimizing the distance between the mean value of cluster center
+    vectors, and the new candidate cluster member vectors. The following equation
+    assumes dataset members that range from *X1* to *Xn*; it also assumes *K* cluster
+    sets that range from *S1* to *Sk*, where *K <= n*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/55533695-d1e3-486e-a661-261ea6f75809.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: K-Means in practice
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The K-Means MLlib functionality uses the `LabeledPoint` structure to process
+    its data and so it needs numeric input data. As the same data from the last section
+    is being reused, we will not explain the data conversion again. The only change
+    that has been made in data terms in this section, is that processing in HDFS will
+    now take place under the `/data/spark/kmeans/` directory**.** Additionally, the
+    conversion Scala script for the K-Means example produces a record that is all
+    comma-separated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The development and processing for the K-Means example has taken place under
+    the `/home/hadoop/spark/kmeans` directory to separate the work from other development.
+    The `sbt` configuration file is now called `kmeans.sbt` and is identical to the
+    last example, except for the project name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code for this section can be found in the software package under `chapter7\K-Means`.
+    So, looking at the code for `kmeans1.scala`, which is stored under `kmeans/src/main/scala`,
+    some similar actions occur. The import statements refer to the Spark context and
+    configuration. This time, however, the K-Means functionality is being imported
+    from MLlib. Additionally, the application class name has been changed for this
+    example to `kmeans1`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The same actions are being taken as in the last example to define the data
+    file--to define the Spark configuration and create a Spark context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, the CSV data is loaded from the data file and split by comma characters
+    into the `VectorData` variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A `KMeans` object is initialized, and the parameters are set to define the
+    number of clusters and the maximum number of iterations to determine them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some default values are defined for the initialization mode, the number of
+    runs, and Epsilon, which we needed for the K-Means call but did not vary for the
+    processing. Finally, these parameters were set against the `KMeans` object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We cached the training vector data to improve the performance and trained the
+    `KMeans` object using the vector data to create a trained K-Means model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We have computed the K-Means cost and number of input data rows, and have to
+    output the results via `println` statements. The cost value indicates how tightly
+    the clusters are packed and how separate the clusters are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we have used the K-Means Model to print the cluster centers as vectors
+    for each of the three clusters that were computed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we use the K-Means model to predict function to create a list of cluster
+    membership predictions. We then count these predictions by value to give a count
+    of the data points in each cluster. This shows which clusters are bigger and whether
+    there really are three clusters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So, in order to run this application, it must be compiled and packaged from
+    the `kmeans` subdirectory as the Linux `pwd` command shows here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once this packaging is successful, we check HDFS to ensure that the test data
+    is ready. As in the last example, we convert our data into the numeric form using
+    the `convert.scala` file, provided in the software package. We will process the
+    `DigitalBreathTestData2013-MALE2a.csv` data file in the HDFS directory, `/data/spark/kmeans`,
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `spark-submit` tool is used to run the K-Means application. The only change
+    in this command is that the class is now `kmeans1`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output from the Spark cluster run is shown to be as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: The previous output shows the input data volume, which looks correct; it also
+    shows the `K-Means cost` value. The cost is based on the **Within Set Sum of Squared
+    Errors (WSSSE)** which basically gives a measure of how well the found cluster
+    centroids are matching the distribution of the data points. The better they are
+    matching, the lower the cost. The following link [https://datasciencelab.wordpress.com/2013/12/27/finding-the-k-in-k-means-clustering/](https://datasciencelab.wordpress.com/2013/12/27/finding-the-k-in-k-means-clustering/)
+    explains WSSSE and how to find a good value for **k** in more detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, come the three vectors, which describe the data cluster centers with
+    the correct number of dimensions. Remember that these cluster centroid vectors
+    will have the same number of columns as the original vector data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, cluster membership is given for clusters 1 to 3 with cluster 1 (index
+    0) having the largest membership at `407539` member vectors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, these two examples show how data can be classified and clustered using Naive
+    Bayes and K-Means. What if I want to classify images or more complex patterns,
+    and use a black box approach to classification? The next section examines Spark-based
+    classification using **ANNs**, or **artificial neural networks**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Artificial neural networks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following figure shows a simple biological neuron to the left. The neuron
+    has dendrites that receive signals from other neurons. A cell body controls activation,
+    and an axon carries an electrical impulse to the dendrites of other neurons. The
+    artificial neuron to the right has a series of weighted inputs: a summing function
+    that groups the inputs and a **firing mechanism** (**F(Net)**), which decides
+    whether the inputs have reached a threshold, and, if so, the neuron will fire:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/663b4884-b77e-4a07-8718-7f41d2f5fdf1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Neural networks are tolerant of noisy images and distortion, and so are useful
+    when a black box classification method is needed for potentially ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: ANN in practice
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to begin ANN training, test data is needed. Given that this type of
+    classification method is supposed to be good at classifying distorted or noisy
+    images, we decided to attempt to classify the images here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/19b4278b-afec-4d67-826c-20e4b767737f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: They are hand-crafted text files that contain shaped blocks, created from the
+    characters 1 and 0\. When they are stored on HDFS, the carriage return characters
+    are removed so that the image is presented as a single line vector. So, the ANN
+    will be classifying a series of shape images and then will be tested against the
+    same images with noise added to determine whether the classification will still
+    work. There are six training images, and they will each be given an arbitrary
+    training label from 0.1 to 0.6\. So, if the ANN is presented with a closed square,
+    it should return a label of 0.1\. The following image shows an example of a testing
+    image with noise added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The noise, created by adding extra zero (0) characters within the image, has
+    been highlighted:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/9a151e3d-12c8-4d62-9c5b-2b7c4c9674f9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As before, the ANN code is developed using the Linux Hadoop account in a subdirectory
+    called `spark/ann`. The `ann.sbt` file exists in the `ann` directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The contents of the `ann.sbt` file have been changed to use full paths of JAR
+    library files for the Spark dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As in the previous examples, the actual Scala code to be compiled exists in
+    a subdirectory named `src/main/scala`. We have created two Scala programs. The
+    first trains using the input data and then tests the ANN model with the same input
+    data. The second tests the trained model with noisy data to test the distorted
+    data classification:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will examine the first Scala file and then we will just show the extra features
+    of the second file, as the two examples are very similar up to the point of training
+    the ANN. The code examples shown here can be found in the software package provided
+    with this book under the path, `chapter2\ANN`. So, to examine the first Scala
+    example, the import statements are similar to the previous examples. The Spark
+    context, configuration, vectors, and `LabeledPoint` are being imported. The `RDD`
+    class for RDD processing is being imported this time, along with the new ANN class, `ANNClassifier`.
+    Note that the MLlib/classification routines widely use the `LabeledPoint` structure
+    for input data, which will contain the features and labels that are supposed to
+    be trained against:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The application class in this example has been called `testann1`. The HDFS
+    files to be processed have been defined in terms of the HDFS `server`, `path`,
+    and file name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Spark context has been created with the URL for the Spark instance, which
+    now has a different port number--`8077`. The application name is `ANN 1`. This
+    will appear on the Spark web UI when the application is run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The HDFS-based input training and test data files are loaded. The values on
+    each line are split by space characters, and the numeric values have been converted
+    into doubles. The variables that contain this data are then stored in an array
+    called **inputs**. At the same time, an array called outputs is created, containing
+    the labels from `0.1` to `0.6`. These values will be used to classify the input
+    patterns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The input and output data, representing the input data features and labels,
+    are then combined and converted into a `LabeledPoint` structure. Finally, the
+    data is parallelized in order to partition it for optimal parallel processing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Variables are created to define the hidden layer topology of the ANN. In this
+    case, we have chosen to have two hidden layers, each with 100 neurons. The maximum
+    number of iterations is defined as well as a batch size (six patterns) and convergence
+    tolerance. The tolerance refers to how big the training error can get before we
+    can consider training to have worked. Then, an ANN model is created using these
+    configuration parameters and the input data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order to test the trained ANN model, the same input training data is used
+    as testing data to obtain prediction labels. First, an input data variable is
+    created called `rPredictData`. Then, the data is partitioned and, finally, the
+    predictions are obtained using the trained ANN model. For this model to work,
+    it must output the labels, `0.1` to `0.6`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The label predictions are printed and the script closes with a closing bracket:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So, in order to run this code sample, it must first be compiled and packaged.
+    By now, you must be familiar with the `sbt` command, executed from the `ann` subdirectory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `spark-submit` command is then used from within the new `spark/spark` path
+    using the new Spark-based URL at port `8077` to run the application, `testann1`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'By checking the Apache Spark web URL at `http://localhost:19080/`, it is now
+    possible to see the application running. The following figure shows the `ANN 1`
+    application running as well as the previously completed executions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/e5e83e52-c0db-4506-8eeb-3ea0c81a5c5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'By selecting one of the cluster host worker instances, it is possible to see
+    a list of executors that actually carry out cluster processing for that worker:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/689d4c67-406b-4b41-8e9a-e437d9354d48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Finally, by selecting one of the executors, it is possible to see its history
+    and configuration as well as links to the log file and error information. At this
+    level, with the log information provided, debugging is possible. These log files
+    can be checked to process error messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/467af2aa-e9ae-4b6b-927b-8b44c9d32c6d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The `ANN 1` application provides the following output to show that it has reclassified
+    the same input data correctly. The reclassification has been successful as each
+    of the input patterns has been given the same label that it was trained with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So, this shows that ANN training and test prediction will work with the same
+    data. Now, we will train with the same data, but test with distorted or noisy
+    data, an example of which we already demonstrated. This example can be found in
+    the file called `test_ann2.scala` in your software package. It is very similar
+    to the first example, so we will just demonstrate the changed code. The application
+    is now called `testann2`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An extra set of testing data is created after the ANN model has been created
+    using the training data. This testing data contains noise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This data is processed into input arrays and partitioned for cluster processing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It is then used to generate label predictions in the same way as the first
+    example. If the model classifies the data correctly, then the same label values
+    should be printed from `0.1` to `0.6`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code has already been compiled, so it can be run using the `spark-submit`
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the cluster output from this script, which shows a successful classification
+    using a trained ANN model and some noisy test data. The noisy data has been classified
+    correctly. For instance, if the trained model had become confused, it might have
+    given a value of 0.15 for the noisy `close_square_test.img` test image in position
+    one, instead of returning `0.1` as it did:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter has attempted to provide you with an overview of some of the functionality
+    available within the Apache Spark MLlib module. It has also shown the functionality
+    that will soon be available in terms of ANNs or artificial neural networks. You
+    might have been impressed by how well ANNs work. It is not possible to cover all
+    the areas of MLlib due to the time and space allowed for this chapter. In addition,
+    we now want to concentrate more on the SparkML library in the next chapter, which
+    speeds up machine learning by supporting DataFrames and the underlying Catalyst
+    and Tungsten optimizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We saw how to develop Scala-based examples for Naive Bayes classification, K-Means
+    clustering, and ANNs. You learned how to prepare test ...
+  prefs: []
+  type: TYPE_NORMAL

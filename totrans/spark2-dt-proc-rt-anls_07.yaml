@@ -1,0 +1,328 @@
+- en: Apache Spark GraphX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we want to examine the Apache Spark GraphX module and graph
+    processing, in general. So, this chapter will cover the topic of implementing
+    graph analysis workflows on top of GraphX. The *GraphX coding* section, written
+    in Scala, will provide a series of graph coding examples. Before writing code
+    in Scala to use the Spark GraphX module, we think it will be useful to provide
+    an overview of what a graph actually is in terms of graph processing. The following
+    section provides a brief introduction using a couple of simple graphs as examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a graph from raw data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Counting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Filtering
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PageRank
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Triangle count
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Connected components
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A graph can be considered to be a data structure that consists of a group of
+    vertices and edges connecting them. The vertices or nodes in the graph can be
+    anything as long it is an object (so people for example), and the edges are the
+    relationships between them. The edges can be un-directional or directional, meaning
+    that the relationship operates from one node to another. For instance, node **A**
+    is the parent of node **B**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following diagram, the circles represent the vertices or nodes (**A**
+    to **D**), while the thick lines represent the edges or relationships between
+    them (**E1** to **E6**). Each node or edge may have properties, and these values
+    are represented by the associated gray squares (**P1** to **P7**):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, if a graph represents a physical ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph analytics/processing with GraphX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section will examine Apache Spark GraphX programming in Scala using the
+    family relationship graph data sample shown in the last section. This data will
+    be accessed as a list of vertices and edges. Although this data set is small,
+    the graphs that you build in this way could be very large. For example, we've
+    been able to analyze 30 TB of financial transaction data of a large bank using
+    only four Apache Spark workers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The raw data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We are working with two data files. They contain the data that will be used
+    for this section in terms of the vertices and edges that make up a graph:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `vertex` file contains just six lines representing the graph used in the
+    last section. Each `vertex` represents a person and has a vertex ID number, a
+    name, and an age value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `edge` file contains a set of directed `edge` values in the form source
+    vertex ID, destination vertex ID, and relationship. So, record 1 forms a `Sister`
+    relationship between `Flo` and `Mike`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lets, examine some ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a graph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section will explain generic Scala code up to the point of creating a GraphX
+    graph from data. This will save time as the same code is reused in each example.
+    Once this is explained, we will concentrate on the actual graph-based manipulation
+    in each code example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The generic code starts by importing Spark context, GraphX, and RDD functionality
+    for use in the Scala code:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then an application is defined, which `extends` the `App` class. The application
+    name changes for each example from `graph1` to `graph5`. This application name
+    will be used when running the application using `spark-submit`:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As already mentioned, there are two data files that contain `vertex` and `edge`
+    information:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The **Spark Master URL** is defined as the application name, which will appear
+    in the Spark user interface when the application runs. A new Spark configuration
+    object is created, and the URL and name are assigned to it:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A new Spark context is created using the configuration that was just defined:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `vertex` information from the file is then loaded into an RDD-based structure
+    called vertices using the `sparkCxt.textFile` method. The data is stored as a
+    Long `VertexId` and strings to represent the person''s name and age. The data
+    lines are split by commas as this is CSV-based data:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, the `edge` data is loaded into an RDD-based data structure called
+    edges. The CSV-based data is again split by comma values. The first two data values
+    are converted to long values as they represent the source and destination vertex
+    IDs. The final value representing the relationship of the edge is left as `String`.
+    Note that each record in the RDD structure edges is actually now an `Edge` record:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A default value is defined in case a connection or `vertex` is missing; the
+    graph is then constructed from the RDD-based structures vertices and edges and
+    the `default` record:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This creates a GraphX-based structure called `graph`, which can now be used
+    for each of the examples. Remember that, although these data samples might be
+    small, you could create extremely large graphs using this approach.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Many of these algorithms are iterative applications, for instance, PageRank
+    and triangle count. As a result, the programs will generate many iterative Spark
+    jobs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 1 – counting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The graph has been loaded, and we know the data volumes in the data files.
+    But what about the data content in terms of vertices and edges in the actual graph
+    itself? It is very simple to extract this information using the vertices and edges
+    `count` function shown as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running the `graph1` example using the example name and the `.jar` file created
+    earlier will provide the `count` information. The master URL is supplied to connect
+    to the Spark cluster, and some default parameters are supplied for the executor
+    memory and total executor cores:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example 2 – filtering
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'What happens if we need to create a subgraph from the main graph and filter
+    on person age or relationships? The example code from the second example Scala
+    file `graph2` shows how this can be done:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Two example counts have been created from the main graph: the first filters
+    person-based vertices on age only, taking those people who are greater than forty
+    years old. Notice that the `age` value, which was stored as a string, has been
+    converted to a long for the comparison.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second example filters the edges on the relationship property of `Mother`
+    or `Father`. Two count values `c1` and `c2` are created and printed as the Spark
+    run output, shown as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example 3 – PageRank
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The PageRank algorithm provides a ranking value for each of the vertices in
+    a graph. It makes the assumption that the vertices that are connected to the most
+    edges are the most important.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Search engines use PageRank to provide an ordering for page display during
+    a web search as can be seen from the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The example code creates a tolerance value and calls the graph `pageRank` method
+    using it. The vertices are then ranked into a new value ranking. In order to make
+    the ranking more meaningful, the ranking values are joined with the original ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 4 – triangle counting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The triangle count algorithm provides a vertex-based count of the number of
+    triangles associated with that vertex. For instance, vertex `Mike` (1) is connected
+    to `Kate` (5), who is connected to `Sarah` (2), `Sarah` is connected to `Mike`
+    (1), and so a triangle is formed. This can be useful for route finding where triangle
+    free minimum spanning tree graphs need to be generated for route planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code to execute a triangle count and print it is simple as shown next.
+    The graph `triangleCount` method is executed for the graph vertices. The result
+    is saved in the value `tCount` and printed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results of the application job show that vertices `Flo` (4) and `Jim` (6)
+    have no triangles, while `Mike` (1) and `Sarah` (2) have the most as expected,
+    as they have the most relationships:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example 5 – connected components
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When a large graph is created from data, it might contain unconnected subgraphs
+    or subgraphs that are isolated from each other and might contain no bridging or
+    connecting edges between them. These algorithms provide a measure of that connectivity.
+    It might be important depending on your processing to know that all vertices are
+    connected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Scala code for this example calls two graph methods, `connectedComponents`
+    and `stronglyConnectedComponents`. The `strong` method required a maximum iteration
+    count, which has been set to `1000`. These counts are acting on the graph vertices:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter showed by example how Scala-based code can be used to call GraphX
+    algorithms in Apache Spark. Scala has been used because it requires less code
+    to develop the examples than Java, which saves time. Note that GraphX is not available
+    for Python or R. A Scala-based shell can be used, and the code can be compiled
+    into Spark applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most common graph algorithms have been covered and you should have an idea
+    now on how to solve any graph problem with GraphX. Especially since you've understood
+    that a Graph in GraphX is still represented and backed by RDDs, so you are already
+    familiar with using them. The configuration and code examples from this chapter
+    will also be available for download with the book.
+  prefs: []
+  type: TYPE_NORMAL

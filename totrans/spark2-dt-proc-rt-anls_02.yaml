@@ -1,0 +1,580 @@
+- en: Apache Spark Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The Apache Streaming module is a stream processing-based module within Apache
+    Spark. It uses the Spark cluster, to offer the ability to scale to a high degree.
+    Being based on Spark, it is also highly fault tolerant, having the ability to
+    rerun failed tasks by checkpointing the data stream that is being processed. The
+    following topics will be covered in this chapter after an introductory section,
+    which will provide a practical overview of how Apache Spark processes stream-based
+    data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Error recovery and checkpointing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TCP-based stream processing
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: File streams
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Kafka stream source
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For each topic, we will provide a worked example in Scala and show how the stream-based
+    architecture can be set up and tested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following diagram shows potential data sources for Apache Streaming, such
+    as Kafka, Flume, and HDFS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/4c32c387-9352-43a0-9566-9d7d8bcd34f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: These feed into the Spark Streaming module and are processed as Discrete Streams.
+    The diagram also shows that other Spark module functionality, such as machine
+    learning, can be used to process stream-based data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The fully processed data can then be an output for HDFS, databases, or dashboards.
+    This diagram is based on the one at the Spark streaming website, but we wanted
+    to extend it to express the Spark module functionality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/1691aceb-6ff7-4e59-a23e-498ba8631f74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Checkpointing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: On batch processing, we are used to having fault tolerance. This means, in case
+    a node crashed, the job doesn't lose its state and the lost tasks are rescheduled
+    on other workers. Intermediate results are written to persistent storage (which
+    of course has to be fault tolerant as well which is the case for HDFS, GPFS or
+    Cloud Object Storage). Now we want to achieve the same guarantees in streaming
+    as well since it might be crucial that the data stream we are processing is not
+    lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is possible to set up an HDFS-based checkpoint directory to store Apache
+    Spark-based streaming information. In this Scala example, data will be stored
+    in HDFS under `/data/spark/checkpoint`. The following HDFS filesystem `ls` command
+    shows that before starting, the directory does not exist:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For replicating the following example, Twitter API credentials are used in
+    order to connect to the Twitter API and obtain a stream of tweets. The following
+    link explains how such credentials are created within the Twitter UI: [https://dev.twitter.com/oauth/overview/application-owner-access-tokens](https://dev.twitter.com/oauth/overview/application-owner-access-tokens).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following Scala code sample starts by importing Spark Streaming Context
+    and Twitter-based functionality. It then defines an application object named `stream1`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, a method is defined called `createContext`, which will be used to create
+    both the Spark and Streaming contexts. It will also checkpoint the stream to the
+    HDFS-based directory using the streaming context checkpoint method, which takes
+    a directory path as a parameter. The directory path the value `(cpDir)` that was
+    passed to the `createContext` method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, the main method is defined as is the HDFS directory, as well as Twitter
+    access authority and parameters. The Spark Streaming context `ssc` is either retrieved
+    or created using the HDFS checkpoint directory via the `StreamingContext` method--`checkpoint`.
+    If the directory doesn''t exist, then the previous method called `createContext`
+    is called, which will create the context and `checkpoint`. Obviously, we have
+    truncated our own Twitter `auth.keys` in this example for security reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Having run this code, which has no actual processing, the HDFS `checkpoint`
+    directory can be checked again. This time, it is apparent that the `checkpoint`
+    directory has been created and the data has been stored:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This example, taken from the Apache Spark website, shows you how checkpoint
+    storage can be set up and used. How often is checkpointing carried out? The metadata
+    is stored during each stream batch. The actual data is stored within a period,
+    which is the maximum of the batch interval, or ten seconds. This might not be
+    ideal for you, so you can reset the value using the following method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, `newRequiredInterval` is the new checkpoint interval value that you require;
+    generally, you should aim for a value that is five to ten times your batch interval.
+    Checkpointing saves both the stream batch and metadata (data about the data).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the application fails, then, when it restarts, the checkpointed data is used
+    when processing is started. The batch data that was being processed at the time
+    of failure is reprocessed along with the batched data since the failure. Remember
+    to monitor the HDFS disk space being used for the checkpointing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next section, we will examine the streaming sources and provide some
+    examples of each type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streaming sources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will not be able to cover all the stream types with practical examples in
+    this section, but where this chapter is too small to include code, we will at
+    least provide a description. In this chapter, we will cover the TCP and file streams
+    and the Flume, Kafka, and Twitter streams. Apache Spark tends only to support
+    this limited set out of the box, but this is not a problem since 3rd party developers
+    provide connectors to other sources as well. We will start with a practical TCP-based
+    example. This chapter examines stream processing architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, what happens in cases where the stream data delivery rate exceeds
+    the potential data processing rate? Systems such as Kafka provide the possibility
+    of solving this ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: TCP stream
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There is a possibility of using the Spark Streaming Context method called `socketTextStream`
+    to stream data via TCP/IP, by specifying a hostname and port number. The Scala-based
+    code example in this section will receive data on port `10777` that was supplied
+    using the `netcat` Linux command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `netcat` command is a Linux/Unix command which allows you to send and receive
+    data to or from local or remote IP destinations using TCP or UDP. This way every
+    shell script can play the role of a full network client or server. The following
+    is a good tutorial on how to use `netcat`: [http://www.binarytides.com/netcat-tutorial-for-beginners/](http://www.binarytides.com/netcat-tutorial-for-beginners/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code sample starts by importing Spark, the context, and the streaming classes.
+    The object class named `stream2` is defined as it is the main method with arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The number of arguments passed to the class is checked to ensure that it is
+    the hostname and port number. A Spark configuration object is created with an
+    application name defined. The Spark and streaming contexts are then created. Then,
+    a streaming batch time of `10` seconds is set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A DStream called `rawDstream` is created by calling the `socketTextStream`
+    method of the streaming context using the `hostname` and port name parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A top-ten word count is created from the raw stream data by splitting words
+    with spacing. Then, a (key, value) pair is created as (word,1), which is reduced
+    by the key value, this being the word. So now, there is a list of words and their
+    associated counts. The key and value are swapped so the list becomes (count and
+    word). Then, a sort is done on the key, which is now the count. Finally, the top
+    10 items in the RDD within the DStream are taken and printed out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code closes with the Spark Streaming `start` and `awaitTermination` methods
+    being called to start the stream processing and await process termination:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The data for this application is provided, as we stated previously, by the
+    Linux Netcat (`nc`) command. The Linux `cat` command dumps the contents of a log
+    file, which is piped to `nc`. The `lk` options force Netcat to listen for connections
+    and keep on listening if the connection is lost. This example shows that the port
+    being used is `10777`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output from this TCP-based stream processing is shown here. The actual
+    output is not as important as the method demonstrated. However, the data shows,
+    as expected, a list of 10 log file words in descending count order. Note that
+    the top word is empty because the stream was not filtered for empty words:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is interesting if you want to stream data using Apache Spark Streaming
+    based on TCP/IP from a host and port. However, what about more exotic methods?
+    What if you wish to stream data from a messaging system or via memory-based channels?
+    What if you want to use some of the big data tools available today such as Flume
+    and Kafka? The next sections will examine these options, but, first, we will demonstrate
+    how streams can be based on files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: File streams
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We have modified the Scala-based code example in the last section to monitor
+    an HDFS-based directory by calling the Spark Streaming Context method called `textFileStream`.
+    We will not display all of the code, given this small change. The application
+    class is now called `stream3`, which takes a single parameter--the HDFS directory.
+    The directory path could be on another storage system as well (all the code samples
+    will be available with this book):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The stream processing is the same as before. The stream is split into words
+    and the top-ten word list is printed. The only difference this time is that the
+    data must be put in the HDFS directory while the application is running. This
+    is achieved ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flume
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Flume** is an Apache open source project and product, which is designed to
+    move large amounts of data at a big data scale. It is highly scalable, distributed,
+    and reliable, working on the basis of data source, data sink, and data channels,
+    as shown in the following diagram taken from [http://flume.apache.org/](http://flume.apache.org/):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/3dc8cd75-e72b-41ac-9c65-67f383d60539.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Flume uses agents to process data streams. As can be seen in the previous figure,
+    an agent has a data source, data processing channel, and data sink. A clearer
+    way to describe this flow is via the figure we just saw. The channel acts as a
+    queue for the sourced data and the sink passes the data to the next link in the
+    chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Flume agents can form Flume architectures; the output of one agent''s sink
+    can be the input to a second agent. Apache Spark allows two approaches to use
+    Apache Flume. The first is an Avro push-based in-memory approach, whereas the
+    second one, still based on Avro, is a pull-based system using a custom Spark sink
+    library. We are using Flume version 1.5 for this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Flume-based Spark example that we will initially implement here is the
+    Flume-based push approach, where Spark acts as a receiver and Flume pushes the
+    data to Spark. The following figure represents the structure that we will implement
+    on a single node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](img/1a77c7f0-9d03-4ca9-9a72-db41aa75affb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The message data will be sent to port `10777` on a host called `hc2r1m1` using
+    the Linux `netcat` (`nc`) command. This will act as a source (`source1`) for the
+    Flume agent (`agent1`), which will have an in-memory channel called `channel1`.
+    The sink used by `agent1` will be Apache Avro-based, again on a host called `hc2r1m1`,
+    but this time, the port number will be `11777.` The Apache Spark Flume application
+    `stream4` (which we will describe shortly) will listen for Flume stream data on
+    this port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start the streaming process by executing the `nc` command against the `10777`
+    port. Now, when we type text in this window, it will be used as a Flume source
+    and the data will be sent to the Spark application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to run the Flume agent, `agent1`, we have created a Flume configuration
+    file called `agent1.flume.cfg`, which describes the agent's source, channel, and
+    sink. The contents of the file are as follows. The first section defines the `agent1`
+    source, channel, and sink names.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next section defines `source1` to be netcat-based, running on the host
+    called `hc2r1m1` and the `10777` port:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `agent1` channel, `channel1`, is defined as a memory-based channel with
+    a maximum event capacity of `1000` events:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, the `agent1` sink, `sink1`, is defined as an Apache Avro sink on the
+    host called `hc2r1m1` and the `11777` port:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We have created a Bash script called `flume.bash` to run the Flume agent, `agent1`.
+    It looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The script calls the Flume executable `flume-ng`, passing the `agent1` configuration
+    file. The call specifies the agent named `agent1`. It also specifies the Flume
+    configuration directory to be `/etc/flume-ng/conf/`, the default value. Initially,
+    we will use a `netcat` Flume source with a Scala-based example to show how data
+    can be sent to an Apache Spark application. Then, we will show how an RSS-based
+    data feed can be processed in a similar way. So initially, the Scala code that
+    will receive the `netcat` data looks like this. The application class name is
+    defined. The necessary classes for Spark and Flume are imported. Finally, the
+    main method is defined:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Spark and Streaming contexts are created. Then, the Flume-based data stream
+    is created using the stream context host and port number. The Flume-based class,
+    `FlumeUtils`, has been used to do this by calling its `createStream` method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, a stream event count is printed and (for debugging purposes while
+    we test the stream) the stream content is dumped. After this, the stream context
+    is started and configured to run until terminated via the application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Having compiled it, we will run this application using `spark-submit`. In some
+    of the other chapters of this book, we will use a Bash-based script called `run_stream.bash`
+    to execute the job. The script looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So, this script sets some Spark-based variables and a JAR library path for
+    this job. It takes the Spark class to run as its first parameter. It passes all
+    the other variables as parameters to the Spark application class job. So, the
+    execution of the application looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This means that the Spark application is ready and is running as a Flume sink
+    on port `11777`. The Flume input is ready, running as a `netcat` task on port
+    `10777`. Now, the Flume agent, `agent1`, can be started using the Flume script
+    called `flume.bash` to send the `netcat` source-based data to the Apache Spark
+    Flume-based sink:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, when the text is passed to the `netcat` session, it should flow through
+    Flume and be processed as a stream by Spark. Let''s try it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Three simple pieces of text have been added to the `netcat` session and acknowledged
+    with an `OK` so that they can be passed to Flume. The debug output in the Flume
+    session shows that the events (one per line ) have been received and processed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, in the Spark `stream4` application session, three events have been
+    received and processed; in this case, they have been dumped to the session to
+    prove the point that the data arrived. Of course, this is not what you would normally
+    do, but we wanted to prove data transit through this configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is interesting, but it is not really a production-worthy example of Spark
+    Flume data processing. So, in order to demonstrate a potentially real data processing
+    approach, we will change the Flume configuration file source details so that it
+    uses a Perl script, which is executable as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Perl script, which has been referenced previously, `rss.perl`, just acts
+    as a source of Reuters science news. It receives the news as XML and converts
+    it into JSON format. It also cleans the data of unwanted noise. First, it imports
+    packages such as LWP and `XML::XPath` to enable XML processing. Then, it specifies
+    a science-based Reuters news data source and creates a new LWP agent to process
+    the data, similar to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the request is successful, then the XML data returned is defined as the
+    decoded content of the request. Title information is extracted from the XML via
+    an XPath call using the path called `/rss/channel/item/title`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For each node in the extracted title data `XML` string, data is extracted.
+    It is cleaned of unwanted `XML` tags and added to a Perl-based array called titles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The same process is carried out for description-based data in the request response
+    XML. The XPath value used this time is `/rss/channel/item/description/`. There
+    are many more tags to be cleaned from the description data, so there are many
+    more Perl searches and line replacements that act on this data (`s///g`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, the XML-based title and description data is output in the RSS JSON
+    format using a `print` command. The script then sleeps for 30 seconds and requests
+    more RSS news information to process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We have created a second Scala-based stream processing code example called
+    `stream5`. It is similar to the `stream4` example, but it now processes the `rss`
+    item data from the stream. Next, `case class` is defined to process the category,
+    title, and summary from the XML RSS information. An HTML location is defined to
+    store the resulting data that comes from the Flume channel:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The RSS stream data from the Flume-based event is converted to a string. It
+    is then formatted using the case class called `RSSItem`. If there is event data,
+    it is then written to an HDFS directory using the previous `hdfsdir` path:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this code sample, it is possible to see that the Perl RSS script is
+    producing data, because the Flume script output indicates that 80 events have
+    been accepted and received:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The events have been stored on HDFS under the expected directory, as the Hadoop
+    filesystem `ls` command shows here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Also, using the Hadoop filesystem `cat` command, it is possible to prove that
+    the files on HDFS contain `rss` feed news-based data, as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: This Spark stream-based example has used Apache Flume to transmit data from
+    an `rss` source, through Flume, to HDFS via a Spark consumer. This is a good example,
+    but what if you want to publish data to a group of consumers? In the next section,
+    we will examine Apache Kafka--a publish/subscribe messaging system--and determine
+    how it can be used with Spark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kafka
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache Kafka ([http://kafka.apache.org/](http://kafka.apache.org/)) is a top-level
+    open source project in Apache. It is a big data publish/subscribe messaging system
+    that is fast and highly scalable. It uses message brokers for data management
+    and ZooKeeper for configuration so that data can be organized into consumer groups
+    and topics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data in Kafka is split into partitions. In this example, we will demonstrate
+    a receiverless Spark-based Kafka consumer so that we don't need to worry about
+    configuring Spark data partitions when compared to our Kafka data. In order to
+    demonstrate Kafka-based message production and consumption, we will use the Perl
+    RSS script from the last section as a data source. The data passing into Kafka
+    and to Spark will be Reuters RSS news ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We could have provided streaming examples for other systems as well, but there
+    was no room in this chapter. Twitter streaming has been examined by example in
+    the *Checkpointing* section. This chapter has provided practical examples of data
+    recovery via checkpointing in Spark Streaming. It has also touched on the performance
+    limitations of checkpointing and shown that the checkpointing interval should
+    be set at five to ten times the Spark stream batch interval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Checkpointing provides a stream-based recovery mechanism in the case of Spark
+    application failure. This chapter has provided some stream-based worked examples
+    for TCP, File, Flume, and Kafka-based Spark stream coding. All the examples here
+    are based on Scala and compiled with `sbt`. In case you are more familiar with
+    **Maven** the following tutorial explains how to set up a Maven based Scala project:
+    [http://www.scala-lang.org/old/node/345](http://www.scala-lang.org/old/node/345).'
+  prefs: []
+  type: TYPE_NORMAL

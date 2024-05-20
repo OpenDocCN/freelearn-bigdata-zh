@@ -1,0 +1,303 @@
+- en: Preface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Apache Spark is an in-memory, cluster-based data processing system that provides
+    a wide range of functionalities such as big data processing, analytics, machine
+    learning, and more. With this Learning Path, you can take your knowledge of Apache
+    Spark to the next level by learning how to expand Spark's functionality and building
+    your own data flow and machine learning programs on this platform. You will work
+    with the different modules in Apache Spark, such as interactive querying with
+    Spark SQL, using DataFrames and datasets, implementing streaming analytics with
+    Spark Streaming, and applying machine learning and deep learning techniques on
+    Spark using MLlib and various external tools. By the end of this elaborately designed
+    Learning ...
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who This Book Is For
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you are an intermediate-level Spark developer looking to master the advanced
+    capabilities and use-cases of Apache Spark 2.x, this Learning Path is ideal for
+    you. Big data professionals who want to learn how to integrate and use the features
+    of Apache Spark and build a strong big data pipeline will also find this Learning
+    Path useful. To grasp the concepts explained in this Learning Path, you must know
+    the fundamentals of Apache Spark and Scala.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What This Book Covers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*Chapter 1*, *A First Taste and What''s New in Apache Spark V2*, provides an
+    overview of Apache Spark, the functionality that is available within its modules,
+    and how it can be extended. It covers the tools available in the Apache Spark
+    ecosystem outside the standard Apache Spark modules for processing and storage.
+    It also provides tips on performance tuning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Chapter 2*, *Apache Spark Streaming*, talks about continuous applications
+    using Apache Spark Streaming. You will learn how to incrementally process data
+    and create actionable insights.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Chapter 3*, *Structured Streaming*, talks about Structured Streaming – a new
+    way of defining continuous applications using the DataFrame and Dataset APIs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Chapter 4*, *Apache Spark MLlib*, introduces ...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To Get the Most out of This Book
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Operating system:** Linux distributions are preferable (including Debian,
+    Ubuntu, Fedora, RHEL, and CentOS) and to be more specific, for Ubuntu it is recommended
+    to have a complete 14.04 (LTS) 64-bit (or later) installation, VMWare player 12,
+    or Virtual box. You can run Spark jobs on Windows (XP/7/8/10) or Mac OS X (10.4.7+).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hardware configuration:** Processor Core i3, Core i5 (recommended), or Core
+    i7 (to get the best results). However, multicore processing will provide faster
+    data processing and scalability. You will need least 8-16 GB RAM (recommended)
+    for a standalone mode and at least 32 GB RAM for a single VM--and higher for a
+    cluster. You will also need enough storage for running heavy jobs (depending on
+    the dataset size you will be handling), and preferably at least 50 GB of free
+    disk storage (for a standalone word missing and for an SQL warehouse).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Along with this, you would require the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: VirtualBox 5.1.22 or above
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hortonworks HDP Sandbox V2.6 or above
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Eclipse Neon or above
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Eclipse Scala Plugin
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Eclipse Git Plugin
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spark 2.0.0 (or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hadoop 2.7 (or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Java (JDK and JRE) 1.7+/1.8+
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scala 2.11.x (or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Python 2.7+/3.4+
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: R 3.1+ and RStudio 1.0.143 (or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maven Eclipse plugin (2.9 or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maven compiler plugin for Eclipse (2.3.2 or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maven assembly plugin for Eclipse (2.4.1 or higher)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Oracle JDK SE 1.8.x
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: JetBrain IntelliJ Community Edition 2016.2.X or later version
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scala plug-in for IntelliJ 2016.2.x
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Jfreechart 1.0.19
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: breeze-core 0.12
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cloud9 1.5.0 JAR
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bliki-core 3.0.19
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hadoop-streaming 2.2.0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Jcommon 1.0.23
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lucene-analyzers-common 6.0.0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lucene-core-6.0.0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spark-streaming-flume-assembly 2.0.0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Spark-streaming-kafka-assembly 2.0.0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Download the Example Code Files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can download the example code files for this book from your account at [www.packt.com](http://www.packt.com).
+    If you purchased this book elsewhere, you can visit [www.packt.com/support](http://www.packt.com/support)
+    and register to have the files emailed directly to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can download the code files by following these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log in or register at [www.packt.com](http://www.packt.com).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select the SUPPORT tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on Code Downloads & Errata.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Enter the name of the book in the Search box and follow the onscreen instructions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Once the file is downloaded, please make sure that you unzip or extract the
+    folder using the latest version of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WinRAR/7-Zip for Windows
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Zipeg/iZip/UnRarX for Mac
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7-Zip/PeaZip for Linux
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The code bundle for the book is also hosted on GitHub at [https://github.com/PacktPublishing/Apache-Spark-2-Data-Processing-and-Real-Time-Analytics
+    ...](https://github.com/PacktPublishing/Apache-Spark-2-Data-Processing-and-Real-Time-Analytics)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conventions Used
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this book, you will find a number of text styles that distinguish between
+    different kinds of information. Here are some examples of these styles and an
+    explanation of their meaning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code words in the text, database table names, folder names, filenames, file
+    extensions, pathnames, dummy URLs, user input, and Twitter handles are shown as
+    follows: "The next lines of code read the link and assign it to the to the `BeautifulSoup` function."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A block of code is set as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Any command-line input or output is written as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Bold**: New terms and important words are shown in bold. Words that you see
+    on the screen, for example, in menus or dialog boxes, appear in the text like
+    this: "Configure Global Libraries. Select Scala SDK as your global library."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warnings or important notes appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tips and tricks appear like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get in Touch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Feedback from our readers is always welcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**General feedback**: If you have questions about any aspect of this book,
+    mention the book title in the subject of your message and email us at `customercare@packtpub.com`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Errata**: Although we have taken every care to ensure the accuracy of our
+    content, mistakes do happen. If you have found a mistake in this book, we would
+    be grateful if you would report this to us. Please visit [www.packt.com/submit-errata](http://www.packt.com/submit-errata),
+    selecting your book, clicking on the Errata Submission Form link, and entering
+    the details.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Piracy**: If you come across any illegal copies of our works in any form
+    on the Internet, we would be grateful if you would provide us with the location
+    address or website name. Please contact us ...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reviews
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Please leave a review. Once you have read and used this book, why not leave
+    a review on the site that you purchased it from? Potential readers can then see
+    and use your unbiased opinion to make purchase decisions, we at Packt can understand
+    what you think about our products, and our authors can see your feedback on their
+    book. Thank you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more information about Packt, please visit [packt.com](http://www.packt.com/).
+  prefs: []
+  type: TYPE_NORMAL
