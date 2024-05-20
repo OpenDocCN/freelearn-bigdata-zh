@@ -422,7 +422,49 @@ val newDF = remover.transform(regexTokenized)
 
 StringIndexer 将标签的字符串列编码为标签索引列。索引在`0，numLabels)`中，按标签频率排序，因此最常见的标签获得索引 0。如果输入列是数字，我们将其转换为字符串并索引字符串值。当下游管道组件（如估计器或转换器）使用此字符串索引标签时，您必须将组件的输入列设置为此字符串索引列名称。在许多情况下，您可以使用`setInputCol`设置输入列。假设您有以下格式的一些分类数据：
 
-![**图 12：**应用 String Indexer 的 DataFrame 现在，我们想要对名称列进行索引，以便最常见的名称（在我们的案例中为 Jason）获得索引 0。为此，Spark 提供了`StringIndexer`API。对于我们的示例，可以按如下方式完成：首先，让我们为上表创建一个简单的 DataFrame：```scalaval df = spark.createDataFrame( Seq((0, "Jason", "Germany"), (1, "David", "France"), (2, "Martin", "Spain"), (3, "Jason", "USA"), (4, "Daiel", "UK"), (5, "Moahmed", "Bangladesh"), (6, "David", "Ireland"), (7, "Jason", "Netherlands"))).toDF("id", "name", "address")```现在让我们对名称列进行索引，如下所示：```scalaval indexer = new StringIndexer() .setInputCol("name") .setOutputCol("label") .fit(df)```现在让我们使用转换器下游索引器，如下所示：```scalaval indexed = indexer.transform(df)```现在让我们检查一下是否它正常工作：```scalaindexed.show(false)```![](img/00381.gif)**图 13：**使用 StringIndexer 创建标签
+![](img/00380.gif)
+
+**图 12：**应用 String Indexer 的 DataFrame 
+
+现在，我们想要对名称列进行索引，以便最常见的名称（在我们的案例中为 Jason）获得索引 0。为此，Spark 提供了`StringIndexer`API。对于我们的示例，可以按如下方式完成：首先，让我们为上表创建一个简单的 DataFrame：
+
+```scala
+val df = spark.createDataFrame( 
+  Seq((0, "Jason", "Germany"), 
+      (1, "David", "France"), 
+      (2, "Martin", "Spain"), 
+      (3, "Jason", "USA"), 
+      (4, "Daiel", "UK"), 
+      (5, "Moahmed", "Bangladesh"), 
+      (6, "David", "Ireland"), 
+      (7, "Jason", "Netherlands"))
+).toDF("id", "name", "address")
+```
+
+现在让我们对名称列进行索引，如下所示：
+
+```scala
+val indexer = new StringIndexer() 
+    .setInputCol("name") 
+    .setOutputCol("label") 
+    .fit(df)
+```
+
+现在让我们使用转换器下游索引器，如下所示：
+
+```scala
+val indexed = indexer.transform(df)
+```
+
+现在让我们检查一下是否它正常工作：
+
+```scala
+indexed.show(false)
+```
+
+![](img/00381.gif)
+
+**图 13：**使用 StringIndexer 创建标签
 
 另一个重要的转换器是 OneHotEncoder，在处理分类数据的机器学习任务中经常使用。我们将在下一节中看到如何使用这个转换器。
 
