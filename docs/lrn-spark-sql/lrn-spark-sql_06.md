@@ -428,7 +428,15 @@ scala> val diaDataAgeBinsDF = diaDataReadmtdDF.withColumn("age_category", udfAge
 scala> val diaDataRmvGndrDF = diaDataAgeBinsDF.filter($"gender" =!= "Unknown/Invalid") 
 ```
 
-![经过预处理步骤后的最终 DataFrame 的模式如下所示：```scalascala> diaDataFinalDF.printSchema()```![](img/00191.gif)
+![](img/00190.gif)
+
+经过预处理步骤后的最终 DataFrame 的模式如下所示：
+
+```scala
+scala> diaDataFinalDF.printSchema()
+```
+
+![](img/00191.gif)
 
 我们显示了最终数据框中的一些样本记录，如下所示：
 
