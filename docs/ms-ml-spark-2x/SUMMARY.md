@@ -1,3 +1,4 @@
++   [精通 Spark 2.x 机器学习](README.md)
 +   [前言](ms-ml-spark-2x_0.md)
 +   [第一章：大规模机器学习和 Spark 简介](ms-ml-spark-2x_1.md)
 +   [第二章：探测暗物质 - 弥散子粒子](ms-ml-spark-2x_2.md)

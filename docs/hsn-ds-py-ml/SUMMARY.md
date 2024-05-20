@@ -1,3 +1,4 @@
++   [Python 数据科学与机器学习实用手册](README.md)
 +   [前言](hsn-ds-py-ml_00.md)
 +   [第一章：入门](hsn-ds-py-ml_01.md)
 +   [第二章：统计和概率复习，以及 Python 实践](hsn-ds-py-ml_02.md)

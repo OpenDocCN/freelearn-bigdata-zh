@@ -1,3 +1,4 @@
++   [Spark 深度学习秘籍](README.md)
 +   [前言](spark-dl-cb_00.md)
 +   [第一章：为深度学习开发设置 Spark](spark-dl-cb_01.md)
 +   [第二章：在 Spark 中创建神经网络](spark-dl-cb_02.md)

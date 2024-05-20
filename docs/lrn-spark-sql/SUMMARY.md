@@ -1,3 +1,4 @@
++   [Spark SQL 学习手册](README.md)
 +   [前言](lrn-spark-sql_00.md)
 +   [第一章：开始使用 Spark SQL](lrn-spark-sql_01.md)
 +   [第二章：使用 Spark SQL 处理结构化和半结构化数据](lrn-spark-sql_02.md)
