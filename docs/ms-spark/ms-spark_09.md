@@ -1,4 +1,4 @@
-# 第九章。Databricks 可视化
+# 第九章：Databricks 可视化
 
 本章是在第八章*Spark Databricks*中完成的工作的基础上继续研究基于 Apache Spark 的服务的功能[`databricks.com/`](https://databricks.com/)。尽管我在本章中将使用基于 Scala 的代码示例，但我希望集中在 Databricks 功能上，而不是传统的 Spark 处理模块：MLlib、GraphX、Streaming 和 SQL。本章将解释以下 Databricks 领域：
 

@@ -1,4 +1,4 @@
-# 第五章。Spark Streaming
+# 第五章：Spark Streaming
 
 Spark Streaming 为 Apache Spark 增加了大数据处理的圣杯——即实时分析。它使 Spark 能够摄取实时数据流，并以极低的延迟（几秒钟）提供实时智能。
 

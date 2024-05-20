@@ -1,4 +1,4 @@
-# 第三章。Apache Spark Streaming
+# 第三章：Apache Spark Streaming
 
 Apache Streaming 模块是 Apache Spark 中基于流处理的模块。它利用 Spark 集群提供高度扩展的能力。基于 Spark，它也具有高度的容错性，能够通过检查点数据流重新运行失败的任务。在本章的初始部分之后，将涵盖以下领域，这部分将提供 Apache Spark 处理基于流的数据的实际概述：
 

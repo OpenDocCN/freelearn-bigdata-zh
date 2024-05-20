@@ -1,4 +1,4 @@
-# 第一章。Apache Spark
+# 第一章：Apache Spark
 
 Apache Spark 是一个分布式和高度可扩展的内存数据分析系统，提供了在 Java、Scala、Python 以及 R 等语言中开发应用程序的能力。它在目前的 Apache 顶级项目中具有最高的贡献/参与率。现在，像 Mahout 这样的 Apache 系统使用它作为处理引擎，而不是 MapReduce。此外，正如在第四章中所示，*Apache Spark SQL*，可以使用 Hive 上下文，使 Spark 应用程序直接处理 Apache Hive 中的数据。
 

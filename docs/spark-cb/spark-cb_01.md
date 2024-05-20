@@ -1,4 +1,4 @@
-# 第一章. 开始使用 Apache Spark
+# 第一章： 开始使用 Apache Spark
 
 在本章中，我们将设置和配置 Spark。本章分为以下教程：
 

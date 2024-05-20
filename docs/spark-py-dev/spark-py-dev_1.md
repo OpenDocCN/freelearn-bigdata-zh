@@ -1,4 +1,4 @@
-# 第一章。设置 Spark 虚拟环境
+# 第一章：设置 Spark 虚拟环境
 
 在本章中，我们将为开发目的构建一个隔离的虚拟环境。该环境将由 Spark 和 Python Anaconda 发行版提供的 PyData 库驱动。这些库包括 Pandas、Scikit-Learn、Blaze、Matplotlib、Seaborn 和 Bokeh。我们将执行以下活动：
 

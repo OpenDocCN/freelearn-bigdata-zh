@@ -1,4 +1,4 @@
-# 第三章。使用 Spark 玩弄数据
+# 第三章：使用 Spark 玩弄数据
 
 根据上一章中概述的批处理和流处理架构，我们需要数据来支持我们的应用程序。我们将从 Twitter 上收集关于 Apache Spark 的数据。本章的目标是准备数据以供机器学习和流处理应用程序进一步使用。本章重点介绍如何在分布式网络中交换代码和数据。我们将深入了解序列化、持久化、编组和缓存。我们将深入了解 Spark SQL，这是交互式地探索结构化和半结构化数据的关键 Spark 模块。支持 Spark SQL 的基本数据结构是 Spark dataframe。Spark dataframe 受到 Python Pandas dataframe 和 R dataframe 的启发。它是一种强大的数据结构，被具有 R 或 Python 背景的数据科学家充分理解和赞赏。
 

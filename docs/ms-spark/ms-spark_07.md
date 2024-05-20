@@ -1,4 +1,4 @@
-# 第七章。用 H2O 扩展 Spark
+# 第七章：用 H2O 扩展 Spark
 
 H2O 是一个由[`h2o.ai/`](http://h2o.ai/)开发的开源系统，用于机器学习。它提供了丰富的机器学习算法和基于 Web 的数据处理用户界面。它提供了使用多种语言开发的能力：Java、Scala、Python 和 R。它还具有与 Spark、HDFS、Amazon S3、SQL 和 NoSQL 数据库进行接口的能力。本章将集中讨论 H2O 与 Apache Spark 的集成，使用 H2O 的**Sparkling Water**组件。将使用 Scala 开发一个简单的示例，基于真实数据创建一个深度学习模型。本章将：
 

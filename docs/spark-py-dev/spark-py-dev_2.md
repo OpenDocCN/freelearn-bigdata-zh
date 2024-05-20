@@ -1,4 +1,4 @@
-# 第二章。使用 Spark 构建批处理和流处理应用
+# 第二章：使用 Spark 构建批处理和流处理应用
 
 本书的目标是通过构建一个应用程序来分析社交网络上 Spark 社区的互动，教会你关于 PySpark 和 PyData 库。我们将从 GitHub 收集有关 Apache Spark 的信息，在 Twitter 上检查相关的推文，并通过 Meetup 感受 Spark 在更广泛的开源软件社区中的热度。
 

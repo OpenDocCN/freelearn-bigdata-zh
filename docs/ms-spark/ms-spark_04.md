@@ -1,4 +1,4 @@
-# 第四章。Apache Spark SQL
+# 第四章：Apache Spark SQL
 
 在本章中，我想检查 Apache Spark SQL，使用 Apache Hive 与 Spark 以及数据框。数据框在 Spark 1.3 中引入，是列式数据存储结构，大致相当于关系数据库表。本书的章节并非按顺序开发，因此早期章节可能使用比后期章节更旧的 Spark 版本。我还想检查 Spark SQL 的用户定义函数。关于 Spark 类 API 的信息，可以在以下位置找到：`spark.apache.org/docs/<version>/api/scala/index.html`。
 

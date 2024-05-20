@@ -1,4 +1,4 @@
-# 第四章。Spark SQL
+# 第四章：Spark SQL
 
 Spark SQL 是用于处理结构化数据的 Spark 模块。本章分为以下几个部分：
 
